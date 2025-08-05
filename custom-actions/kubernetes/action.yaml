@@ -55,3 +55,4 @@ EOF
         sudo apt-mark hold kubelet kubeadm kubectl
 
         echo "[10/10] Kubernetes setup completed"
+
