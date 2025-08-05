@@ -1,5 +1,4 @@
 name: Deploying the develop Branch
-
 on:
   push:
     branches:
