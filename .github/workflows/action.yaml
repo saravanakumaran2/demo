@@ -1,5 +1,4 @@
 name: Deploying the develop Branch
-
 on:
   push:
     branches:
@@ -29,13 +28,7 @@ jobs:
     needs: run-ansible
     steps:
       - name: Build & Push frontend image
-        uses: ./custom-actions/docker-frontend
-        with:
-          dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
-          dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build & Push backend image
-        uses: ./custom-actions/docker-backend
+        uses: ./custom-actions/docker image
         with:
           dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
           dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
