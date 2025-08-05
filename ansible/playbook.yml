@@ -1,5 +1,5 @@
 ---
-- name: Setup Kubernetes prerequisites
+- name: Setup Kubernetes prerequisites and Docker
   hosts: all
   become: true
   tasks:
@@ -26,28 +26,78 @@
     - name: Apply sysctl params
       command: sysctl --system
 
-    - name: Install containerd
+    # Docker installation starts here
+    - name: Install prerequisites for Docker
       apt:
-        name: containerd
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
         update_cache: yes
 
-    - name: Generate containerd config
-      shell: |
-        mkdir -p /etc/containerd
-        containerd config default > /etc/containerd/config.toml
-        sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+    - name: Add Docker official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Restart containerd
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: Install Docker engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running and enabled
       service:
-        name: containerd
-        state: restarted
+        name: docker
+        state: started
         enabled: yes
 
+    # Kubernetes installation continues
+    - name: Install Kubernetes apt dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Add Kubernetes signing key
+      apt_key:
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        state: present
+        keyring: /etc/apt/trusted.gpg.d/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: deb [signed-by=/etc/apt/trusted.gpg.d/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /
+        state: present
+
     - name: Install kubelet, kubeadm, kubectl
-      shell: |
-        apt-get update && apt-get install -y apt-transport-https ca-certificates curl gpg
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/kubernetes-apt-keyring.gpg
-        echo "deb [signed-by=/etc/apt/trusted.gpg.d/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
-        apt-get update && apt-get install -y kubelet kubeadm kubectl
-        apt-mark hold kubelet kubeadm kubectl
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: yes
+
+    - name: Hold Kubernetes packages at current version
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: hold
