@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+  namespace: {{ .Values.frontend.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.frontend.name }}
+    spec:
+      containers:
+        - name: {{ .Values.frontend.name }}
+          image: {{ .Values.frontend.image }}
+          ports:
+            - containerPort: {{ .Values.frontend.service.targetPort }}
+          env:
+            - name: BACKEND_URL
+              value: "{{ .Values.frontend.env.backendUrl }}"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.frontend.service.name }}
+  namespace: {{ .Values.frontend.namespace }}
+spec:
+  selector:
+    app: {{ .Values.frontend.name }}
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.frontend.service.port }}
+      targetPort: {{ .Values.frontend.service.targetPort }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.frontend.secret.name }}
+  namespace: {{ .Values.frontend.namespace }}
+type: Opaque
+data:
+  user: "{{ .Values.mysql.secret.values.user }}"
+  password: "{{ .Values.mysql.secret.values.password }}"
+  database: "{{ .Values.mysql.secret.values.database }}"

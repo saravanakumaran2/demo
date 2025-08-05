@@ -1,0 +1,8 @@
+---
+releases:
+  - name: three-tier-app
+    chart: ./three-tier-app
+    installed: true
+    values:
+      - ./three-tier-app/values.yaml
+

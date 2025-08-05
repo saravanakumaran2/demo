@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mysql.name }}
+  namespace: {{ .Values.mysql.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.mysql.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mysql.name }}
+    spec:
+      containers:
+        - name: {{ .Values.mysql.name }}
+          image: {{ .Values.mysql.image }}
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: {{ .Values.mysql.secret.password.key }}
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: {{ .Values.mysql.secret.database.key }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: {{ .Values.mysql.secret.user.key }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.secret.name }}
+                  key: {{ .Values.mysql.secret.password.key }}
+          ports:
+            - containerPort: {{ .Values.mysql.service.port }}
+          volumeMounts:
+            - name: {{ .Values.mysql.volumeMounts.name }}
+              mountPath: {{ .Values.mysql.storage.mountPath }}
+      volumes:
+        - name: {{ .Values.mysql.storage.pv.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.mysql.storage.pvc.name }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mysql.service.name }}
+  namespace: {{ .Values.mysql.namespace }}
+spec:
+  ports:
+    - port: {{ .Values.mysql.service.port }}
+  selector:
+    app: {{ .Values.mysql.name }}
+
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.mysql.storage.pv.name }}
+  namespace: {{ .Values.mysql.namespace }}
+spec:
+  capacity:
+    storage: {{ .Values.mysql.storage.storage }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ .Values.mysql.storage.path }}
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.mysql.storage.pvc.name }}
+  namespace: {{ .Values.mysql.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mysql.storage.storage }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.mysql.secret.name }}
+  namespace: {{ .Values.mysql.namespace }}
+type: Opaque
+data:
+  user: "{{ .Values.mysql.secret.values.user }}"
+  password: "{{ .Values.mysql.secret.values.password }}"
+  database: "{{ .Values.mysql.secret.values.database }}"

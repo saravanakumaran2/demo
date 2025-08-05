@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Register</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Fredoka One', cursive;
+    background: linear-gradient(135deg, #87ceeb 0%, #ffecd2 100%);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Ocean wave animated shapes */
+  .wave {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 20%;
+    background: #00aaff;
+    opacity: 0.4;
+    border-radius: 35% 50% 35% 50% / 40% 60% 40% 60%;
+    animation: waveMove 6s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+
+  .wave:nth-child(2) {
+    bottom: 10px;
+    background: #0077cc;
+    animation-delay: 3s;
+    opacity: 0.3;
+  }
+
+  @keyframes waveMove {
+    0% {transform: translateX(0) translateY(0);}
+    100% {transform: translateX(-25%) translateY(-10px);}
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px 50px;
+    border-radius: 30px;
+    box-shadow:
+      0 0 15px #f4a261,
+      0 0 35px #f4a261;
+    color: #d96459;
+    width: 340px;
+    text-align: center;
+    animation: fadeInScale 0.7s ease forwards;
+    border: 3px solid #e76f51;
+  }
+
+  @keyframes fadeInScale {
+    from {opacity: 0; transform: scale(0.8);}
+    to {opacity: 1; transform: scale(1);}
+  }
+
+  h2 {
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 2.8rem;
+    letter-spacing: 3px;
+    text-shadow: 1px 1px 0 #e76f51;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  input {
+    padding: 15px 18px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    border: 2px solid #e76f51;
+    font-size: 18px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  input:focus {
+    border-color: #f4a261;
+    box-shadow: 0 0 15px #f4a261;
+  }
+
+  input::placeholder {
+    color: #d96459aa;
+  }
+
+  .password-rules {
+    font-size: 13px;
+    color: #d96459cc;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  button {
+    padding: 15px;
+    border-radius: 25px;
+    border: none;
+    background: linear-gradient(90deg, #f4a261, #e76f51);
+    color: white;
+    font-weight: 900;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 0 20px #f4a261;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+    letter-spacing: 1.5px;
+  }
+
+  button:hover {
+    background: linear-gradient(90deg, #e76f51, #f4a261);
+    box-shadow: 0 0 35px #e76f51;
+  }
+
+  .error-message {
+    color: #d62828;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.5s ease forwards;
+    letter-spacing: 1px;
+  }
+
+  .error-message svg {
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
+    fill: #d62828;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {transform: scale(1);}
+    50% {transform: scale(1.15);}
+  }
+
+  a {
+    color: #e76f51;
+    text-decoration: underline;
+    margin-top: 15px;
+    display: inline-block;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="wave"></div>
+  <div class="wave"></div>
+
+  <div class="container">
+    <h2>Register</h2>
+
+    {% if error_msg %}
+    <div class="error-message">
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 6.63 5.37 12 12 12s12-5.37 12-12c0-6.63-5.37-12-12-12zM13 17h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      <span>{{ error_msg }}</span>
+    </div>
+    {% endif %}
+
+    <form id="registerForm" method="POST" action="/register" novalidate>
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" minlength="8" required />
+      <div class="password-rules">
+        Password must be at least 8 characters long.
+      </div>
+      <button type="submit">Register</button>
+    </form>
+
+    <a href="/login">Login</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+# Global settings
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+imagePullSecrets: []
+
+# Custom ServiceAccount settings
+serviceAccount:
+  create: false
+  automount: true
+  annotations: {}
+  name: ""
+
+# Frontend
+frontend:
+  name: frontend
+  namespace: frontend
+  image: saravana227/frontend:latest
+  secret:
+    name: mysql-secret
+  service:
+    name: frontend
+    type: ClusterIP
+    port: 80
+    targetPort: 5000
+  env:
+    backendUrl: http://backend.backend.svc.cluster.local:5000
+
+# Nginx Proxy
+nginx:
+  name: nginx-proxy
+  namespace: nginx-proxy
+  image: saravana227/nginx_proxy_k8s:latest
+  service:
+      name: nginx_proxy
+      type: NodePort
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+
+# Backend
+backend:
+  name: backend
+  namespace: backend
+  image: saravana227/backend:latest
+  secret:
+    name: mysql-secret
+    user:
+      key: user
+    password:
+      key: password
+    database:
+      key: database
+  service:
+    name: backend
+    type: ClusterIP
+    port: 5000
+    targetPort: 5001
+  env:
+    mysqlHost: mysql.mysql.svc.cluster.local
+
+# MySQL
+mysql:
+  name: mysql
+  namespace: mysql
+  image: mysql:5.7
+  secret:
+    name: mysql-secret
+    values:
+      user: bXl1c2Vy
+      password: bXlwYXNzd29yZA==
+      database: bXlkYg==
+    user:
+      key: user
+    password:
+      key: password
+    database:
+      key: database
+  service:
+    name: mysql
+    port: 3306
+  storage:
+    storage: 1Gi
+    path: /mnt/mysql-data
+    mountPath: /var/lib/mysql
+    pv:
+      name: mysql-pv
+    pvc:
+      name: mysql-pvc
+  volumeMounts:
+    name: mysql-pv
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

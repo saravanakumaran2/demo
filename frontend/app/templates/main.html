@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Main Page</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Antique+B1&display=swap');
+
+  body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Shippori Antique B1', serif;
+    background: #0B0C10;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #F1FAEE;
+  }
+
+  /* Fiery gradient moving background */
+  body::before {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, #E63946, #F1FAEE, transparent 80%);
+    animation: flamePulse 7s ease-in-out infinite alternate;
+    filter: blur(120px);
+    z-index: 0;
+  }
+
+  @keyframes flamePulse {
+    0% {
+      transform: scale(1) rotate(0deg);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1.3) rotate(20deg);
+      opacity: 0.95;
+    }
+  }
+
+  /* Glowing container */
+  .container {
+    position: relative;
+    z-index: 1;
+    background: rgba(15, 17, 20, 0.85);
+    border: 3px solid #E63946;
+    border-radius: 25px;
+    padding: 60px 90px;
+    text-align: center;
+    max-width: 600px;
+    box-shadow:
+      0 0 15px #E63946,
+      0 0 30px #E63946,
+      0 0 50px #E63946;
+    animation: glowPulse 5s ease-in-out infinite alternate;
+  }
+
+  @keyframes glowPulse {
+    0% {
+      box-shadow:
+        0 0 15px #E63946,
+        0 0 30px #E63946,
+        0 0 50px #E63946;
+    }
+    100% {
+      box-shadow:
+        0 0 40px #F1FAEE,
+        0 0 55px #F1FAEE,
+        0 0 70px #F1FAEE;
+    }
+  }
+
+  h1 {
+    font-size: 3.8rem;
+    margin-bottom: 25px;
+    text-shadow: 0 0 10px #E63946;
+    letter-spacing: 3px;
+    animation: textFadeIn 2.5s ease forwards;
+  }
+
+  p {
+    font-size: 1.7rem;
+    letter-spacing: 1.8px;
+    animation: textFadeIn 3.5s ease forwards;
+  }
+
+  /* Animated glowing button */
+  form {
+    margin-top: 40px;
+  }
+  button.logout-btn {
+    margin-top: 15px;
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #F1FAEE;
+    background: linear-gradient(45deg, #E63946, #F1FAEE);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 15px #E63946;
+    animation: pulseBtn 3s infinite;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  button.logout-btn:hover {
+    background: linear-gradient(45deg, #F1FAEE, #E63946);
+    box-shadow: 0 0 30px #F1FAEE;
+  }
+
+  @keyframes pulseBtn {
+    0%, 100% {
+      box-shadow: 0 0 15px #E63946;
+    }
+    50% {
+      box-shadow: 0 0 40px #F1FAEE;
+    }
+  }
+
+  @keyframes textFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome {{ username }}</h1>
+    <p>This is the main page!</p>
+    <form method="POST" action="/logout">
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+  </div>
+</body>
+</html>
