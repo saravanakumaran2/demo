@@ -22,13 +22,11 @@ jobs:
       - name: Create Ansible Inventory File
         run: |
           mkdir -p ansible
-          cat <<EOF > ansible/inventory.ini
-[master]
-${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../master.pem
-
-[worker]
-${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../worker.pem
-EOF
+          echo "[master]" > ansible/inventory.ini
+          echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../master.pem" >> ansible/inventory.ini
+          echo "" >> ansible/inventory.ini
+          echo "[worker]" >> ansible/inventory.ini
+          echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../worker.pem" >> ansible/inventory.ini
 
       - name: Install Ansible
         run: |
