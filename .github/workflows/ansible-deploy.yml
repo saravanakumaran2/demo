@@ -4,11 +4,10 @@ on:
   push:
     branches:
       - develop
-on:
   workflow_run:
     workflows: ["Kubernetes Cluster Setup"]
     types:
-      - complete
+      - completed
 jobs:
   run-ansible:
     runs-on: [self-hosted, ansible]
