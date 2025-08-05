@@ -1,0 +1,110 @@
+name: Deploying the develop Branch
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  run-ansible:
+    runs-on: [self-hosted, ansible]
+    name: Run Ansible to Setup Master and Worker
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Ansible Provisioning (Custom Action)
+        uses: ./custom-actions/ansible
+        with:
+          pem_key: ${{ secrets.PEM_KEY }}
+          master_ip: ${{ secrets.MASTER_IP }}
+          worker_ip: ${{ secrets.WORKER_IP }}
+          user: ${{ secrets.USER }}
+
+  docker-build-push:
+    runs-on: [self-hosted, master]
+    name: Build and Push Docker image
+    needs: run-ansible
+    steps:
+      - name: Build & Push frontend and backend images
+        uses: ./custom-actions/docker
+        with:
+          dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
+          dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
+
+  master-setup:
+    runs-on: [self-hosted, master]
+    name: Setup Master Node
+    needs: docker-build-push
+    outputs:
+      join_command: ${{ steps.get_join_command.outputs.join_command }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Master Node
+        uses: ./custom-actions/master
+
+      - name: Extract kubeadm join command
+        id: get_join_command
+        run: |
+          join_cmd=$(grep -A2 "kubeadm join" kubeadm-init.log | tr -d '\\\n' | tr -s ' ')
+          echo "join_command=$join_cmd" >> $GITHUB_OUTPUT
+
+      - name: Save join command to file
+        run: echo "${{ steps.get_join_command.outputs.join_command }}" > join_command.txt
+
+      - name: Upload join command artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: join-command
+          path: join_command.txt
+
+  worker-join:
+    runs-on: [self-hosted, worker]
+    name: Join Worker Node
+    needs: master-setup
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download join command
+        uses: actions/download-artifact@v4
+        with:
+          name: join-command
+          path: .
+
+      - name: Join Cluster
+        uses: ./custom-actions/worker
+
+  verify-cluster:
+    runs-on: [self-hosted, master]
+    name: Verify Cluster Nodes
+    needs: worker-join
+    steps:
+      - name: Check node status
+        run: |
+          kubectl get nodes -o wide
+
+  deploy-helm:
+    runs-on: [self-hosted, master]
+    name: Deploy Application using Helm
+    needs: verify-cluster
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Run Helmfile Sync
+        run: |
+          cd ./helm
+          helmfile sync
+
+      - name: Wait for all pods to be ready
+        run: |
+          kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=120s || echo "Some pods did not become ready in time."
+
+      - name: Show Running Pods
+        run: |
+          kubectl get pods -A -o wide
