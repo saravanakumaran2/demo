@@ -1,0 +1,83 @@
+name: Kubernetes Cluster Setup
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  master-setup:
+    runs-on: [self-hosted, master]
+    name: Setup Master Node (yolvo-master)
+    outputs:
+      join_command: ${{ steps.get_join_command.outputs.join_command }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Setup Master Node
+        uses: ./custom-actions/master
+        
+      - name: Extract kubeadm join command
+        id: get_join_command
+        run: |
+          join_cmd=$(grep -A2 "kubeadm join" kubeadm-init.log | tr -d '\\\n' | tr -s ' ')
+          echo "join_command=$join_cmd" >> $GITHUB_OUTPUT
+
+      - name: Save join command to file
+        run: echo "${{ steps.get_join_command.outputs.join_command }}" > join_command.txt
+
+      - name: Upload join command artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: join-command
+          path: join_command.txt
+
+  worker-join:
+    runs-on: [self-hosted, worker]
+    name: Join Worker Node (yolvo-worker)
+    needs: master-setup
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download join command artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: join-command
+          path: .
+
+      - name: Setup Worker Node and Join Cluster
+        uses: ./custom-actions/worker
+
+  verify-cluster:
+    runs-on: [self-hosted, master]
+    name: Verify Cluster Nodes
+    needs: worker-join
+    steps:
+      - name: Check node status
+        run: |
+          echo "Current nodes in the cluster:"
+          kubectl get nodes -o wide
+
+  deploy-helm:
+    name: Run Helmfile and Show Pods
+    runs-on: [self-hosted, master]
+    needs: verify-cluster
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Run Helmfile Sync
+        run: |
+          cd ./helm
+          echo "Running helmfile sync..."
+          helmfile sync
+
+      - name: Wait for all pods to be running
+        run: |
+          echo "Waiting for all pods to be in 'Running' or 'Completed' state..."
+          kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=120s || echo "Some pods did not become ready in time."
+
+      - name: Show Running Pods
+        run: |
+          echo "Showing running pods..."
+          kubectl get pods -A -o wide
