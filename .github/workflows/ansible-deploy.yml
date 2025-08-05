@@ -10,25 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     name: Run Ansible to Setup Master and Worker
     env:
-      ANSIBLE_HOST_KEY_CHECKING: "False"  # <-- Disable host key checking globally
+      ANSIBLE_HOST_KEY_CHECKING: "False"  # Disable SSH strict host key checking
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup SSH Keys
         run: |
-          echo "${{ secrets.PEM_KEY }}" > master.pem
-          echo "${{ secrets.PEM_KEY }}" > worker.pem
-          chmod 600 master.pem worker.pem
+          mkdir -p ansible
+          echo "${{ secrets.PEM_KEY }}" > ansible/master.pem
+          echo "${{ secrets.PEM_KEY }}" > ansible/worker.pem
+          chmod 600 ansible/master.pem ansible/worker.pem
 
       - name: Create Ansible Inventory File
         run: |
-          mkdir -p ansible
           echo "[master]" > ansible/inventory.ini
-          echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+          echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
           echo "" >> ansible/inventory.ini
           echo "[worker]" >> ansible/inventory.ini
-          echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+          echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
 
       - name: Install Ansible
         run: |
