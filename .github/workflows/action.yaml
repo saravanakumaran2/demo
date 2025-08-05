@@ -24,11 +24,11 @@ jobs:
 
   docker-build-push:
     runs-on: [self-hosted, master]
-    name: Build and Push Docker Images
+    name: Build and Push Docker image
     needs: run-ansible
     steps:
       - name: Build & Push frontend image
-        uses: ./custom-actions/docker image
+        uses: ./custom-actions/docker
         with:
           dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
           dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
