@@ -17,6 +17,11 @@ jobs:
 
       - name: Run Ansible Provisioning (Custom Action)
         uses: ./custom-actions/ansible
+        with:
+          pem_key: ${{ secrets.PEM_KEY }}
+          master_ip: ${{ secrets.MASTER_IP }}
+          worker_ip: ${{ secrets.WORKER_IP }}
+          user: ${{ secrets.USER }}
 
   master-setup:
     name: Setup Master Node (yolvo-master)
