@@ -8,6 +8,7 @@ inputs:
   dockerhub-password:
     description: 'Docker Hub password'
     required: true
+    
 runs:
   using: "composite"
   steps:
