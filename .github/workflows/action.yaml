@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      
 jobs:
   master-setup:
     runs-on: [self-hosted, master]
