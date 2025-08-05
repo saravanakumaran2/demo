@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      
 jobs:
   run-ansible:
     runs-on: [self-hosted, ansible]
