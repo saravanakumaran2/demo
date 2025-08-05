@@ -1,6 +1,5 @@
 name: Ansible Provisioning
 description: Run Ansible playbook to configure master and worker nodes
-
 inputs:
   pem_key:
     required: true
