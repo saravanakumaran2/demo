@@ -4,11 +4,16 @@ on:
   push:
     branches:
       - develop
-
+on:
+  workflow_run:
+    workflows: ["Ansible Provisioning"]
+    types:
+      - complete
 jobs:
   run-ansible:
     runs-on: [self-hosted, ansible]
     name: Run Ansible to Setup Master and Worker
+
     env:
       ANSIBLE_HOST_KEY_CHECKING: "False"  # Disable SSH strict host key checking
     steps:
