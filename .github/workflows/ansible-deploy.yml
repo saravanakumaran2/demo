@@ -7,7 +7,7 @@ on:
 
 jobs:
   run-ansible:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ansible]
     name: Run Ansible to Setup Master and Worker
     env:
       ANSIBLE_HOST_KEY_CHECKING: "False"  # Disable SSH strict host key checking
