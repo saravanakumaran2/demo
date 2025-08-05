@@ -23,10 +23,27 @@ jobs:
           worker_ip: ${{ secrets.WORKER_IP }}
           user: ${{ secrets.USER }}
 
-  master-setup:
-    name: Setup Master Node
+  docker-build-push:
     runs-on: [self-hosted, master]
+    name: Build and Push Docker Images
     needs: run-ansible
+    steps:
+      - name: Build & Push frontend image
+        uses: ./custom-actions/docker-frontend
+        with:
+          dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
+          dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & Push backend image
+        uses: ./custom-actions/docker-backend
+        with:
+          dockerhub-username: ${{ secrets.DOCKER_USERNAME }}
+          dockerhub-password: ${{ secrets.DOCKER_PASSWORD }}
+
+  master-setup:
+    runs-on: [self-hosted, master]
+    name: Setup Master Node
+    needs: docker-build-push
     outputs:
       join_command: ${{ steps.get_join_command.outputs.join_command }}
     steps:
@@ -52,8 +69,8 @@ jobs:
           path: join_command.txt
 
   worker-join:
-    name: Join Worker Node
     runs-on: [self-hosted, worker]
+    name: Join Worker Node
     needs: master-setup
     steps:
       - name: Checkout Code
@@ -69,8 +86,8 @@ jobs:
         uses: ./custom-actions/worker
 
   verify-cluster:
-    name: Verify Cluster Nodes
     runs-on: [self-hosted, master]
+    name: Verify Cluster Nodes
     needs: worker-join
     steps:
       - name: Check node status
@@ -79,8 +96,8 @@ jobs:
           kubectl get nodes -o wide
 
   deploy-helm:
-    name: Deploy Application using Helm
     runs-on: [self-hosted, master]
+    name: Deploy Application using Helm
     needs: verify-cluster
     steps:
       - name: Checkout Repository
