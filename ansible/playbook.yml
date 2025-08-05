@@ -1,12 +1,8 @@
+---
 - name: Setup Kubernetes prerequisites
   hosts: all
   become: true
   tasks:
-    - name: Disable swap
-      shell: |
-        swapoff -a
-        sed -i '/ swap / s/^/#/' /etc/fstab
-
     - name: Load kernel modules
       copy:
         dest: /etc/modules-load.d/k8s.conf
