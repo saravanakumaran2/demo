@@ -4,17 +4,15 @@ on:
   push:
     branches:
       - develop
-  workflow_run:
-    workflows: ["Kubernetes Cluster Setup"]
-    types:
-      - completed
+
 jobs:
   run-ansible:
     runs-on: [self-hosted, ansible]
     name: Run Ansible to Setup Master and Worker
 
     env:
-      ANSIBLE_HOST_KEY_CHECKING: "False"  # Disable SSH strict host key checking
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
