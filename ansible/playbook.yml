@@ -97,3 +97,10 @@
     - name: Hold Kubernetes packages at current version
       command: apt-mark hold kubelet kubeadm kubectl
 
+    - name: Install helmfile
+      run: |
+        curl -L https://github.com/roboll/helmfile/releases/latest/download/helmfile_linux_amd64 -o /usr/local/bin/helmfile
+        chmod +x /usr/local/bin/helmfile
+        helmfile --version
+
+
