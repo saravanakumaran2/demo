@@ -1,6 +1,16 @@
-# custom-actions/ansible/action.yaml
 name: Ansible Provisioning
 description: Run Ansible playbook to configure master and worker nodes
+
+inputs:
+  pem_key:
+    required: true
+  master_ip:
+    required: true
+  worker_ip:
+    required: true
+  user:
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -8,18 +18,18 @@ runs:
       shell: bash
       run: |
         mkdir -p ansible
-        echo "${{ secrets.PEM_KEY }}" > ansible/master.pem
-        echo "${{ secrets.PEM_KEY }}" > ansible/worker.pem
+        echo "${{ inputs.pem_key }}" > ansible/master.pem
+        echo "${{ inputs.pem_key }}" > ansible/worker.pem
         chmod 600 ansible/master.pem ansible/worker.pem
 
     - name: Create Ansible Inventory File
       shell: bash
       run: |
         echo "[master]" > ansible/inventory.ini
-        echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+        echo "${{ inputs.master_ip }} ansible_user=${{ inputs.user }} ansible_ssh_private_key_file=ansible/master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
         echo "" >> ansible/inventory.ini
         echo "[worker]" >> ansible/inventory.ini
-        echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+        echo "${{ inputs.worker_ip }} ansible_user=${{ inputs.user }} ansible_ssh_private_key_file=ansible/worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
 
     - name: Install Ansible
       shell: bash
