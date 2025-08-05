@@ -6,7 +6,7 @@ on:
       - develop
 on:
   workflow_run:
-    workflows: ["Ansible Provisioning"]
+    workflows: ["Kubernetes Cluster Setup"]
     types:
       - complete
 jobs:
