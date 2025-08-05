@@ -1,0 +1,33 @@
+# custom-actions/ansible/action.yaml
+name: Ansible Provisioning
+description: Run Ansible playbook to configure master and worker nodes
+runs:
+  using: "composite"
+  steps:
+    - name: Setup SSH Keys
+      shell: bash
+      run: |
+        mkdir -p ansible
+        echo "${{ secrets.PEM_KEY }}" > ansible/master.pem
+        echo "${{ secrets.PEM_KEY }}" > ansible/worker.pem
+        chmod 600 ansible/master.pem ansible/worker.pem
+
+    - name: Create Ansible Inventory File
+      shell: bash
+      run: |
+        echo "[master]" > ansible/inventory.ini
+        echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+        echo "" >> ansible/inventory.ini
+        echo "[worker]" >> ansible/inventory.ini
+        echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+
+    - name: Install Ansible
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+
+    - name: Run Ansible Playbook
+      shell: bash
+      run: |
+        ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
