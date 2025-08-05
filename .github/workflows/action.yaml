@@ -24,7 +24,7 @@ jobs:
           user: ${{ secrets.USER }}
 
   master-setup:
-    name: Setup Master Node (yolvo-master)
+    name: Setup Master Node
     runs-on: [self-hosted, master]
     needs: run-ansible
     outputs:
@@ -52,7 +52,7 @@ jobs:
           path: join_command.txt
 
   worker-join:
-    name: Join Worker Node (yolvo-worker)
+    name: Join Worker Node
     runs-on: [self-hosted, worker]
     needs: master-setup
     steps:
@@ -97,4 +97,4 @@ jobs:
 
       - name: Show Running Pods
         run: |
-          kubectl get pods -o wide
+          kubectl get pods -A -o wide
