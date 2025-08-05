@@ -17,20 +17,25 @@ runs:
 
     - name: Login to Docker Hub
       shell: bash
-      run: echo "${{ inputs.dockerhub-password }}" | docker login -u "${{ inputs.dockerhub-username }}" --password-stdin
+      run: |
+        echo "${{ inputs.dockerhub-password }}" | docker login -u "${{ inputs.dockerhub-username }}" --password-stdin
 
     - name: Build frontend image
       shell: bash
-      run: docker build -t saravana227/frontend ./frontend
+      run: |
+        docker build -t saravana227/frontend ./frontend
 
     - name: Push frontend image
       shell: bash
-      run: docker push saravana227/frontend
+      run: |
+        docker push saravana227/frontend
 
     - name: Build backend image
       shell: bash
-      run: docker build -t saravana227/backend ./backend
+      run: |
+        docker build -t saravana227/backend ./backend
 
     - name: Push backend image
       shell: bash
-      run: docker push saravana227/backend
+      run: |
+        docker push saravana227/backend
