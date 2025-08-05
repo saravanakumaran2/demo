@@ -22,7 +22,7 @@ jobs:
           user: ${{ secrets.USER }}
 
   docker-build-push:
-    runs-on: [self-hosted, master]
+    runs-on: [self-hosted, ansible]
     name: Build and Push Docker image
     needs: run-ansible
     steps:
