@@ -13,15 +13,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key for Master
+      - name: Setup SSH Keys
         run: |
-          echo "${{ secrets.PEM_KEY_MASTER }}" > master.pem
-          chmod 600 master.pem
+          echo "${{ secrets.PEM_KEY }}" > master.pem
+          echo "${{ secrets.PEM_KEY }}" > worker.pem
+          chmod 600 master.pem worker.pem
 
-      - name: Setup SSH Key for Worker
+      - name: Create Ansible Inventory File
         run: |
-          echo "${{ secrets.PEM_KEY_WORKER }}" > worker.pem
-          chmod 600 worker.pem
+          mkdir -p ansible
+          cat <<EOF > ansible/inventory.ini
+[master]
+${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../master.pem
+
+[worker]
+${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=../worker.pem
+EOF
 
       - name: Install Ansible
         run: |
@@ -30,4 +37,4 @@ jobs:
 
       - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml --private-key=master.pem --user=${{ secrets.USER }}
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
