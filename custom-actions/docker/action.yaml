@@ -1,6 +1,5 @@
 name: Docker Build & Push
 description: Build frontend and backend Docker images and push to Docker Hub
-
 inputs:
   dockerhub-username:
     description: 'Docker Hub username'
