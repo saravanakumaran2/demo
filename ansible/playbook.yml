@@ -1,7 +1,8 @@
 ---
-- name: Setup Kubernetes prerequisites and Docker
+- name: Setup Kubernetes prerequisites, Docker, Helm, and Helmfile
   hosts: all
   become: true
+
   tasks:
     - name: Load kernel modules
       copy:
@@ -26,7 +27,7 @@
     - name: Apply sysctl params
       command: sysctl --system
 
-    # Docker installation starts here
+    # Docker installation
     - name: Install prerequisites for Docker
       apt:
         name:
@@ -63,7 +64,7 @@
         state: started
         enabled: yes
 
-    # Kubernetes installation continues
+    # Kubernetes installation
     - name: Install Kubernetes apt dependencies
       apt:
         name:
@@ -97,8 +98,19 @@
     - name: Hold Kubernetes packages at current version
       command: apt-mark hold kubelet kubeadm kubectl
 
-    # Install helmfile
+    # Install Helm CLI
+    - name: Install Helm (v3)
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    # Install Helmfile (your existing method)
     - name: Install helmfile
       shell: |
-        curl -L https://github.com/roboll/helmfile/releases/latest/download/helmfile_linux_amd64 -o /usr/local/bin/helmfile
-        chmod +x /usr/local/bin/helmfile
+        wget https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64
+        chmod +x helmfile_linux_amd64
+        mv helmfile_linux_amd64 /usr/local/bin/helmfile
+      args:
+        creates: /usr/local/bin/helmfile
+
