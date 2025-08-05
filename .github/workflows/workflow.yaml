@@ -2,23 +2,27 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
 
 jobs:
   build-deploy:
-    runs-on:  [self-hosted, master]
+    name: Build and Deploy on Master Node
+    runs-on:
+      - self-hosted
+      - master
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Use Docker Install Action
+      - name: Install Docker
         uses: ./custom-actions/docker-install
 
-      - name: Use Kubeadm Setup Action
+      - name: Set Up Kubernetes with Kubeadm
         uses: ./custom-actions/kubeadm-setup
 
-      - name: Use Helm Install Action
+      - name: Install Helm
         uses: ./custom-actions/helm-install
 
       - name: Build Frontend Docker Image
@@ -27,10 +31,12 @@ jobs:
       - name: Build Backend Docker Image
         run: docker build -t backend:latest ./backend
 
-      - name: Deploy via Helmfile
+      - name: Deploy Using Helmfile
         run: |
           cd helm
           helmfile apply
 
-      - name: Check Frontend is Running
-        run: curl -s http://localhost:30080/login || exit 1
+      - name: Check Frontend Is Running
+        run: |
+          sleep 10
+          curl -s http://localhost:30080/login || (echo "Frontend is not responding" && exit 1)
