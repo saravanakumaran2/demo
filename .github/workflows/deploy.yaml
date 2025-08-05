@@ -1,11 +1,5 @@
 name: Kubernetes Cluster Setup
 
-on:
-  workflow_run:
-    workflows: ["Ansible Provisioning"]
-    types:
-      - completed
-
 jobs:
   master-setup:
     runs-on: [self-hosted, master]
