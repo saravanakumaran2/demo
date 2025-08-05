@@ -1,0 +1,49 @@
+name: Setup Kubernetes Master Node
+description: Initializes Kubernetes master node and applies Flannel CNI
+runs:
+  using: "composite"
+  steps:
+    - name: Reset Kubernetes (clean slate)
+      shell: bash
+      run: |
+        sudo kubeadm reset -f
+        sudo rm -rf /etc/kubernetes/
+        sudo rm -rf /var/lib/etcd/
+        sudo rm -rf /var/lib/kubelet/*
+        sudo rm -rf /etc/cni/net.d/
+        sudo rm -rf /var/lib/cni/
+        sudo rm -rf $HOME/.kube/
+        sudo systemctl daemon-reexec
+        sudo systemctl restart containerd
+        sudo systemctl restart kubelet
+
+    - name: Initialize Kubernetes master
+      shell: bash
+      run: |
+        sudo kubeadm init --pod-network-cidr=10.244.0.0/16 | tee kubeadm-init.log
+
+    - name: Setup kubeconfig for kubectl
+      shell: bash
+      run: |
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+    - name: Deploy Flannel CNI
+      shell: bash
+      run: |
+        kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+    - name: Wait for all pods to be ready
+      shell: bash
+      run: |
+        echo "Waiting for system pods to become Ready..."
+        for i in {1..30}; do
+          if kubectl get pods -n kube-system | grep -v 'Running\|Completed' | grep -v 'STATUS' | grep -q .; then
+            echo "Still waiting..."
+            sleep 5
+          else
+            echo "All system pods are now running."
+            break
+          fi
+        done
