@@ -1,0 +1,42 @@
+name: Ansible Provisioning
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  run-ansible:
+    runs-on: [self-hosted, ansible]
+    name: Run Ansible to Setup Master and Worker
+
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Keys
+        run: |
+          mkdir -p ansible
+          echo "${{ secrets.PEM_KEY }}" > ansible/master.pem
+          echo "${{ secrets.PEM_KEY }}" > ansible/worker.pem
+          chmod 600 ansible/master.pem ansible/worker.pem
+
+      - name: Create Ansible Inventory File
+        run: |
+          echo "[master]" > ansible/inventory.ini
+          echo "${{ secrets.MASTER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/master.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+          echo "" >> ansible/inventory.ini
+          echo "[worker]" >> ansible/inventory.ini
+          echo "${{ secrets.WORKER_IP }} ansible_user=${{ secrets.USER }} ansible_ssh_private_key_file=ansible/worker.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
