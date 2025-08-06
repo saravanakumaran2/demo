@@ -106,7 +106,7 @@ jobs:
 
       - name: Wait for all pods to be ready
         run: |
-          kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=180s || echo "Some pods did not become ready in time."
+          kubectl wait --for=condition=Ready pods --all --all-namespaces --timeout=20s || echo "Some pods did not become ready in time."
 
       - name: Show Running Pods
         run: kubectl get pods -A -o wide
